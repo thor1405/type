@@ -73,47 +73,50 @@ export default function PracticePage() {
   const isPassageMode = duration === "passage";
 
   // Handle test completion & API record
-  const handleFinish = async (result: TypingResult) => {
-    try {
-      const res = await fetch("/api/tests", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          passageId: passage.id,
-          mode: "SOLO",
-          difficulty,
-          durationSeconds: activeDurationSeconds,
-          wpm: result.wpm,
-          rawCpm: result.rawCpm,
-          accuracy: result.accuracy,
-          charactersTyped: result.charactersTyped,
-          correctChars: result.correctChars,
-          incorrectChars: result.incorrectChars,
-          errors: result.errors,
-          duration: result.duration,
-          consistency: result.consistency,
-          timeline: result.timeline,
-        }),
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        setFinalResult({
-          ...result,
-          id: data.testId,
-          personalBestDiff: data.personalBestDiff,
-          isNewBest: data.isNewBest,
+  const handleFinish = useCallback(
+    async (result: TypingResult) => {
+      try {
+        const res = await fetch("/api/tests", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            passageId: passage.id,
+            mode: "SOLO",
+            difficulty,
+            durationSeconds: activeDurationSeconds,
+            wpm: result.wpm,
+            rawCpm: result.rawCpm,
+            accuracy: result.accuracy,
+            charactersTyped: result.charactersTyped,
+            correctChars: result.correctChars,
+            incorrectChars: result.incorrectChars,
+            errors: result.errors,
+            duration: result.duration,
+            consistency: result.consistency,
+            timeline: result.timeline,
+          }),
         });
-        if (data.newAchievements) {
-          setNewAchievements(data.newAchievements);
+
+        if (res.ok) {
+          const data = await res.json();
+          setFinalResult({
+            ...result,
+            id: data.testId,
+            personalBestDiff: data.personalBestDiff,
+            isNewBest: data.isNewBest,
+          });
+          if (data.newAchievements) {
+            setNewAchievements(data.newAchievements);
+          }
+        } else {
+          setFinalResult(result);
         }
-      } else {
+      } catch {
         setFinalResult(result);
       }
-    } catch {
-      setFinalResult(result);
-    }
-  };
+    },
+    [passage.id, difficulty, activeDurationSeconds]
+  );
 
   const {
     charStates,
