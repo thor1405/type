@@ -1,0 +1,187 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String            @id @default(auto()) @map("_id") @db.ObjectId
+  email        String            @unique
+  username     String            @unique
+  passwordHash String
+  avatar       String            @default("default")
+  role         String            @default("USER") // USER, ADMIN
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  profile      Profile?
+  typingTests  TypingTest[]
+  challenges   Challenge[]       @relation("CreatedChallenges")
+  attempts     ChallengeAttempt[]
+  achievements UserAchievement[]
+  roomsCreated Room[]            @relation("CreatedRooms")
+}
+
+model Profile {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId          String   @unique @db.ObjectId
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bio             String?  @default("Passionate keyboard warrior.")
+  keyboard        String?  @default("Mechanical - Cherry MX")
+  theme           String?  @default("dark")
+  soundTheme      String?  @default("mechanical")
+  totalTypingTime Int      @default(0) // in seconds
+  currentStreak   Int      @default(0) // in days
+  bestStreak      Int      @default(0)
+  lastActiveAt    DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model TypingPassage {
+  id         String       @id @default(auto()) @map("_id") @db.ObjectId
+  title      String
+  text       String
+  author     String?      @default("Anonymous")
+  source     String?      @default("Literature & Tech")
+  difficulty String       @default("MEDIUM") // EASY, MEDIUM, HARD, EXPERT
+  category   String       @default("General") // General, Quotes, Code, Literature, Speed
+  wordsCount Int
+  createdAt  DateTime     @default(now())
+
+  tests      TypingTest[]
+  challenges Challenge[]
+  rooms      Room[]
+}
+
+model TypingTest {
+  id              String         @id @default(auto()) @map("_id") @db.ObjectId
+  userId          String?        @db.ObjectId
+  user            User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+  passageId       String?        @db.ObjectId
+  passage         TypingPassage? @relation(fields: [passageId], references: [id], onDelete: SetNull)
+  mode            String         @default("SOLO") // SOLO, MULTIPLAYER, CHALLENGE
+  difficulty      String         @default("MEDIUM")
+  durationSeconds Int            @default(30)
+  createdAt       DateTime       @default(now())
+
+  result          TestResult?
+}
+
+model TestResult {
+  id              String     @id @default(auto()) @map("_id") @db.ObjectId
+  testId          String     @unique @db.ObjectId
+  test            TypingTest @relation(fields: [testId], references: [id], onDelete: Cascade)
+  wpm             Float
+  rawCpm          Float
+  accuracy        Float
+  charactersTyped Int
+  correctChars    Int
+  incorrectChars  Int
+  errors          Int
+  duration        Float      // actual duration in seconds
+  consistency     Float      @default(90.0) // 0 - 100 percentage
+  timelineJson    String     // JSON array of snapshot points: [{ time, wpm, raw, errors, acc }]
+  createdAt       DateTime   @default(now())
+}
+
+model Room {
+  id              String         @id @default(auto()) @map("_id") @db.ObjectId
+  code            String         @unique
+  name            String
+  hostId          String         @db.ObjectId
+  host            User           @relation("CreatedRooms", fields: [hostId], references: [id], onDelete: Cascade)
+  passageId       String?        @db.ObjectId
+  passage         TypingPassage? @relation(fields: [passageId], references: [id], onDelete: SetNull)
+  difficulty      String         @default("MEDIUM")
+  durationSeconds Int            @default(30)
+  status          String         @default("WAITING") // WAITING, COUNTDOWN, RACING, FINISHED
+  maxPlayers      Int            @default(8)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  players         RoomPlayer[]
+}
+
+model RoomPlayer {
+  id           String    @id @default(auto()) @map("_id") @db.ObjectId
+  roomId       String    @db.ObjectId
+  room         Room      @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  userId       String
+  username     String
+  avatar       String    @default("default")
+  isHost       Boolean   @default(false)
+  isReady      Boolean   @default(false)
+  progress     Float     @default(0) // 0 to 100%
+  currentWpm   Float     @default(0)
+  accuracy     Float     @default(100)
+  finished     Boolean   @default(false)
+  finishRank   Int?
+  finishTimeMs Int?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model Challenge {
+  id              String             @id @default(auto()) @map("_id") @db.ObjectId
+  code            String             @unique
+  title           String
+  creatorId       String             @db.ObjectId
+  creator         User               @relation("CreatedChallenges", fields: [creatorId], references: [id], onDelete: Cascade)
+  passageId       String?            @db.ObjectId
+  passage         TypingPassage?     @relation(fields: [passageId], references: [id], onDelete: SetNull)
+  passageText     String
+  difficulty      String             @default("MEDIUM")
+  durationSeconds Int                @default(30)
+  targetWpm       Float              @default(70.0)
+  expiresAt       DateTime?
+  createdAt       DateTime           @default(now())
+
+  attempts        ChallengeAttempt[]
+}
+
+model ChallengeAttempt {
+  id              String    @id @default(auto()) @map("_id") @db.ObjectId
+  challengeId     String    @db.ObjectId
+  challenge       Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  userId          String?   @db.ObjectId
+  user            User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  username        String
+  avatar          String    @default("default")
+  wpm             Float
+  rawCpm          Float
+  accuracy        Float
+  durationSeconds Float
+  errors          Int
+  rank            Int?
+  createdAt       DateTime  @default(now())
+}
+
+model Achievement {
+  id             String            @id @default(auto()) @map("_id") @db.ObjectId
+  code           String            @unique
+  title          String
+  description    String
+  icon           String            // Lucide icon name or emoji
+  tier           String            @default("BRONZE") // BRONZE, SILVER, GOLD, PLATINUM, DIAMOND
+  category       String            @default("SPEED") // SPEED, ACCURACY, TESTS, STREAK, MULTIPLAYER, CHALLENGE
+  thresholdValue Float             @default(0)
+  xpReward       Int               @default(50)
+  createdAt      DateTime          @default(now())
+
+  users          UserAchievement[]
+}
+
+model UserAchievement {
+  id            String      @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String      @db.ObjectId
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievementId String      @db.ObjectId
+  achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  unlockedAt    DateTime    @default(now())
+
+  @@unique([userId, achievementId])
+}
