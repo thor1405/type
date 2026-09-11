@@ -1,0 +1,41 @@
+# dependencies
+node_modules
+.pnp
+.pnp.js
+
+# testing & coverage
+coverage
+tests
+
+# next.js build output
+.next
+out
+build
+dist
+
+# environment & local secrets
+.env*.local
+.env
+
+# prisma local dev db
+*.db
+*.db-journal
+prisma/dev.db
+
+# debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# git & IDE
+.git
+.gitignore
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+
+# docs
+README.md

@@ -3,7 +3,7 @@ const next = require("next");
 const { Server } = require("socket.io");
 
 const dev = process.env.NODE_ENV !== "production";
-const hostname = "localhost";
+const hostname = process.env.HOSTNAME || "0.0.0.0";
 const port = parseInt(process.env.PORT || "3000", 10);
 
 const app = next({ dev, hostname, port });
@@ -459,7 +459,7 @@ app.prepare().then(() => {
     });
   });
 
-  server.listen(port, () => {
+  server.listen(port, hostname, () => {
     console.log(`> TypeRush production server running on http://${hostname}:${port}`);
   });
 });

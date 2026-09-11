@@ -77,3 +77,54 @@ npm run dev
 ```
 
 Open `http://localhost:3000` to start typing!
+
+---
+
+## 🍓 Raspberry Pi 5 Docker Deployment
+
+TypeRush includes a multi-stage `Dockerfile` and `docker-compose.yml` optimized for 64-bit ARM (`linux/arm64`) on Raspberry Pi 5:
+
+### 1. Prerequisites on Raspberry Pi 5
+Ensure Docker and Docker Compose are installed on your Pi:
+```bash
+# Install Docker if not already present
+curl -sSL https://get.docker.com | sh
+sudo usermod -aG docker $USER
+newgrp docker
+```
+
+### 2. Configure Environment Variables
+Copy or create your `.env` file on the Pi:
+```bash
+cp .env.example .env
+```
+Ensure your MongoDB Atlas `DATABASE_URL` is set in `.env`:
+```env
+DATABASE_URL="mongodb+srv://test1234:<password>@cluster0.h0btd.mongodb.net/typerush?appName=Cluster0&retryWrites=true&w=majority"
+JWT_SECRET="your_production_secret_key_2026"
+NEXTAUTH_SECRET="your_nextauth_secret_key_2026"
+```
+
+### 3. Launch with Docker Compose
+```bash
+# Build and run container in detached mode
+docker compose up -d --build
+```
+
+### 4. Manage Container
+```bash
+# View live logs
+docker compose logs -f
+
+# Check container health status
+docker compose ps
+
+# Stop the container
+docker compose down
+
+# Restart the container
+docker compose restart
+```
+
+Access TypeRush from any device on your local network at `http://<your-pi-ip-address>:3000`!
+
