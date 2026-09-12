@@ -460,6 +460,6 @@ app.prepare().then(() => {
   });
 
   server.listen(port, hostname, () => {
-    console.log(`> TypeRush production server running on http://${hostname}:${port}`);
+    console.log(`> KeyStreak production server running on http://${hostname}:${port}`);
   });
 });

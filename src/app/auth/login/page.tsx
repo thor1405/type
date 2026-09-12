@@ -38,7 +38,7 @@ export default function LoginPage() {
           <div className="w-12 h-12 rounded-2xl bg-rush-500 flex items-center justify-center text-slate-950 font-black mx-auto shadow-[0_0_20px_rgba(16,185,129,0.4)]">
             <Zap className="w-6 h-6 fill-slate-950" />
           </div>
-          <h1 className="text-2xl font-black text-white tracking-tight">Welcome to TypeRush</h1>
+          <h1 className="text-2xl font-black text-white tracking-tight">Welcome to KeyStreak</h1>
           <p className="text-xs text-slate-400">
             Sign in to track your typing stats, race friends, and climb leaderboards.
           </p>

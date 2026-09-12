@@ -47,7 +47,7 @@ export default function LandingPage() {
           {/* Eyebrow badge */}
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900/90 border border-slate-700/80 text-xs font-semibold text-rush-400 mb-6 shadow-sm">
             <Sparkles className="w-3.5 h-3.5 text-rush-400" />
-            <span>TypeRush 2.0 — Real-Time Competitive Typing</span>
+            <span>KeyStreak 2.0 — Real-Time Competitive Typing</span>
           </div>
 
           {/* Main Title */}

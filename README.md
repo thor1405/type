@@ -1,6 +1,6 @@
-# ⚡ TypeRush — Production-Grade Competitive Typing Game
+# ⚡ KeyStreak — Production-Grade Competitive Typing Game
 
-**TypeRush** is a fast, modern, competitive typing platform where users can practice solo across multiple difficulty tiers, race against other players in synchronized real-time grand prix via Socket.IO, and challenge friends with asynchronous time-trial leaderboards.
+**KeyStreak** is a fast, modern, competitive typing platform where users can practice solo across multiple difficulty tiers, race against other players in synchronized real-time grand prix via Socket.IO, and challenge friends with asynchronous time-trial leaderboards.
 
 ---
 

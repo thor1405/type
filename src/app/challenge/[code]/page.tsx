@@ -110,13 +110,13 @@ export default function ChallengePage() {
   });
 
   const handleShare = async () => {
-    const shareText = `${challenge?.creator} challenged you to a typing race on TypeRush! Target: ${challenge?.targetWpm} WPM.`;
+    const shareText = `${challenge?.creator} challenged you to a typing race on KeyStreak! Target: ${challenge?.targetWpm} WPM.`;
     const shareUrl = window.location.href;
 
     if (navigator.share) {
       try {
         await navigator.share({
-          title: challenge?.title || "TypeRush Challenge",
+          title: challenge?.title || "KeyStreak Challenge",
           text: shareText,
           url: shareUrl,
         });

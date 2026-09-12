@@ -68,7 +68,7 @@ export function Navbar() {
             <Zap className="w-5 h-5 fill-slate-950 text-slate-950" />
           </div>
           <span className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-200 to-rush-400 bg-clip-text text-transparent">
-            TypeRush
+            KeyStreak
           </span>
         </Link>
 

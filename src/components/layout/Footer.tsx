@@ -12,7 +12,7 @@ export function Footer() {
           <div className="w-6 h-6 rounded-lg bg-rush-500 flex items-center justify-center text-slate-950 font-black">
             <Zap className="w-3.5 h-3.5 fill-slate-950" />
           </div>
-          <span className="font-bold text-slate-300 tracking-tight">TypeRush</span>
+          <span className="font-bold text-slate-300 tracking-tight">KeyStreak</span>
           <span className="text-slate-600">|</span>
           <span>Next-Gen Competitive Typing Platform</span>
         </div>

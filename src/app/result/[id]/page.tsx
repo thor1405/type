@@ -78,7 +78,7 @@ export default function ShareableResultPage() {
             href="/practice"
             className="inline-block mt-2 px-5 py-2 rounded-xl bg-rush-500 text-slate-950 font-bold text-xs"
           >
-            Take a Test on TypeRush
+            Take a Test on KeyStreak
           </Link>
         </div>
       </div>
@@ -97,7 +97,7 @@ export default function ShareableResultPage() {
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rush-950/80 border border-rush-500/30 text-rush-400 font-mono text-xs font-bold mb-2">
               <ShieldCheck className="w-3.5 h-3.5" />
-              <span>TypeRush Verified Result</span>
+              <span>KeyStreak Verified Result</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
               Speed Performance Certificate
@@ -183,7 +183,7 @@ export default function ShareableResultPage() {
             className="flex items-center gap-2 px-6 py-3 rounded-xl bg-rush-500 hover:bg-rush-400 text-slate-950 font-bold text-xs shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all hover:scale-105"
           >
             <Keyboard className="w-4 h-4" />
-            <span>Test Your Speed on TypeRush</span>
+            <span>Test Your Speed on KeyStreak</span>
             <ArrowRight className="w-4 h-4" />
           </Link>
 

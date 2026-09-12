@@ -109,7 +109,7 @@ export async function POST(req: NextRequest, { params }: { params: { route: stri
         role: "USER",
         profile: {
           create: {
-            bio: "Typing enthusiast on TypeRush.",
+            bio: "Typing enthusiast on KeyStreak.",
             keyboard: "Mechanical Keyboard",
             theme: "dark",
             soundTheme: "mechanical",

@@ -65,7 +65,7 @@ export function ResultModal({
   }, [onTryAgain]);
 
   const handleShare = async () => {
-    const shareText = `I just typed ${result.wpm} WPM with ${result.accuracy}% accuracy on TypeRush! 🚀`;
+    const shareText = `I just typed ${result.wpm} WPM with ${result.accuracy}% accuracy on KeyStreak! 🚀`;
     const shareUrl = result.id
       ? `${window.location.origin}/result/${result.id}`
       : window.location.href;
@@ -73,7 +73,7 @@ export function ResultModal({
     if (navigator.share) {
       try {
         await navigator.share({
-          title: "My TypeRush Result",
+          title: "My KeyStreak Result",
           text: shareText,
           url: shareUrl,
         });
