@@ -18,15 +18,25 @@ export async function GET(req: NextRequest) {
       where.category = category;
     }
 
+    if (random) {
+      const count = await prisma.typingPassage.count({ where });
+      if (count === 0) {
+        return NextResponse.json({ error: "No passages found" }, { status: 404 });
+      }
+      const randomSkip = Math.floor(Math.random() * count);
+      const passage = await prisma.typingPassage.findFirst({
+        where,
+        skip: randomSkip,
+      });
+      return NextResponse.json({ passage });
+    }
+
+    const limit = Math.min(Number(searchParams.get("limit") || 50), 100);
     const passages = await prisma.typingPassage.findMany({
       where,
+      take: limit,
       orderBy: { createdAt: "desc" },
     });
-
-    if (random && passages.length > 0) {
-      const selected = passages[Math.floor(Math.random() * passages.length)];
-      return NextResponse.json({ passage: selected });
-    }
 
     return NextResponse.json({ passages });
   } catch (error) {

@@ -228,6 +228,38 @@ export default function PracticePage() {
             </button>
           </div>
         </div>
+
+        {/* Category Pills Bar */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 pt-2 border-t border-slate-800/60 scrollbar-none text-xs">
+          <span className="text-slate-500 font-medium text-[11px] uppercase tracking-wider pl-1 pr-1.5 flex items-center gap-1 shrink-0">
+            <Sparkles className="w-3 h-3 text-rush-400" />
+            Category:
+          </span>
+          {[
+            { id: "ALL", label: "All (1,200+)" },
+            { id: "Code", label: "Code & Tech" },
+            { id: "Literature", label: "Literature" },
+            { id: "Quotes", label: "Philosophy & Quotes" },
+            { id: "Science", label: "Science & Space" },
+            { id: "Speed", label: "Speed Drills" },
+            { id: "General", label: "General" },
+          ].map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => {
+                setCategory(cat.id);
+                handleRestart();
+              }}
+              className={`px-2.5 py-1 rounded-lg font-medium whitespace-nowrap transition-all ${
+                category === cat.id
+                  ? "bg-rush-500/20 text-rush-300 border border-rush-500/40 shadow-sm"
+                  : "text-slate-400 hover:text-slate-200 hover:bg-slate-900 border border-transparent"
+              }`}
+            >
+              {cat.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Main Arena / Results View */}

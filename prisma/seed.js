@@ -3,123 +3,36 @@ const bcrypt = require("bcryptjs");
 
 const prisma = new PrismaClient();
 
-const PASSAGES = [
-  // EASY
-  {
-    title: "Morning Coffee",
-    text: "The sun rises gently over the horizon, painting the morning sky in shades of amber and rose. A warm cup of coffee rests comfortably in your hands as a new day begins with calm energy.",
-    author: "Elena Rostova",
-    source: "Morning Reflections",
-    difficulty: "EASY",
-    category: "General",
-    wordsCount: 35,
-  },
-  {
-    title: "Simple Joys",
-    text: "Sometimes the most profound moments in life are the simplest ones: a walk in the park, the sound of rain against the window, or a quiet conversation with a good friend.",
-    author: "Marcus Aurelius",
-    source: "Quiet Thoughts",
-    difficulty: "EASY",
-    category: "Quotes",
-    wordsCount: 32,
-  },
-  {
-    title: "Ocean Breeze",
-    text: "Waves crash softly against the sandy shore while seabirds glide effortlessly through the crisp coastal air. The rhythm of the ocean brings peace to every restless mind.",
-    author: "Claire Bennett",
-    source: "Coastal Notes",
-    difficulty: "EASY",
-    category: "Literature",
-    wordsCount: 29,
-  },
+const fs = require("fs");
+const path = require("path");
 
-  // MEDIUM
-  {
-    title: "The Speed of Innovation",
-    text: "Technology moves at the speed of thought, transforming the boundaries of human potential and shaping the future of global connectivity. Every leap forward demands courage, creativity, and relentless determination.",
-    author: "Dr. Arthur Vance",
-    source: "Silicon Frontier",
-    difficulty: "MEDIUM",
-    category: "General",
-    wordsCount: 32,
-  },
-  {
-    title: "Whispers of the Cosmos",
-    text: "Stars are the ancient beacons of the universe, casting light across trillions of kilometers to remind us how vast and mysterious our reality truly is. We are stardust contemplating the stars.",
-    author: "Carl Sagan",
-    source: "Cosmic Horizons",
-    difficulty: "MEDIUM",
-    category: "Literature",
-    wordsCount: 31,
-  },
-  {
-    title: "The Craft of Software",
-    text: "Programs must be written for people to read, and only incidentally for machines to execute. Elegance is not optional; it is fundamental to building enduring architecture.",
-    author: "Harold Abelson",
-    source: "Structure and Interpretation of Computer Programs",
-    difficulty: "MEDIUM",
-    category: "Code",
-    wordsCount: 27,
-  },
-  {
-    title: "Discipline and Mastery",
-    text: "We are what we repeatedly do. Excellence, then, is not an act, but a habit. The path to typing mastery requires continuous focus, deliberate repetition, and patience.",
-    author: "Will Durant",
-    source: "The Story of Philosophy",
-    difficulty: "MEDIUM",
-    category: "Quotes",
-    wordsCount: 29,
-  },
+const PASSAGES_DATA_FILE = path.join(__dirname, "data", "passages.json");
+let PASSAGES = [];
 
-  // HARD
-  {
-    title: "Cyber Racing Circuit",
-    text: "Adrenaline surges through your fingertips as keystrokes echo like lightning across the mechanical switches in the digital arena. Every millisecond counts when milliseconds decide victory.",
-    author: "TypeRush Elite",
-    source: "Championship Series",
-    difficulty: "HARD",
-    category: "Speed",
-    wordsCount: 28,
-  },
-  {
-    title: "Quantum Entanglement",
-    text: "Entangled particles maintain instantaneous correlation irrespective of the physical distance separating them, presenting a confounding paradox that challenged the foundational tenets of classical physics.",
-    author: "Niels Bohr",
-    source: "Quantum Principles",
-    difficulty: "HARD",
-    category: "General",
-    wordsCount: 24,
-  },
-  {
-    title: "Recursive Algorithms",
-    text: "function fibonacci(n: number): number { if (n <= 1) return n; return fibonacci(n - 1) + fibonacci(n - 2); } // Recursive complexity O(2^n)",
-    author: "Algorithm Design Manual",
-    source: "Computer Science Standard",
-    difficulty: "HARD",
-    category: "Code",
-    wordsCount: 22,
-  },
-
-  // EXPERT
-  {
-    title: "Cryptographic Synthesis",
-    text: "Zero-knowledge succinct non-interactive arguments of knowledge (zk-SNARKs) leverage elliptic curve pairings and polynomial commitment schemes to achieve verifiable computation without revealing sensitive inputs.",
-    author: "Satoshi Nakamoto",
-    source: "Cryptographic Protocols",
-    difficulty: "EXPERT",
-    category: "Code",
-    wordsCount: 23,
-  },
-  {
-    title: "Philosophical Dialectics",
-    text: "The epistemological dissonance between phenomenological existentialism and deterministic materialism necessitates a rigorous metaphysical deconstruction of intentionality and perceived subjective consciousness.",
-    author: "Jean-Paul Sartre",
-    source: "Being and Nothingness",
-    difficulty: "EXPERT",
-    category: "Literature",
-    wordsCount: 21,
-  },
-];
+if (fs.existsSync(PASSAGES_DATA_FILE)) {
+  PASSAGES = JSON.parse(fs.readFileSync(PASSAGES_DATA_FILE, "utf-8"));
+} else {
+  PASSAGES = [
+    {
+      title: "Morning Coffee",
+      text: "The sun rises gently over the horizon, painting the morning sky in shades of amber and rose. A warm cup of coffee rests comfortably in your hands as a new day begins with calm energy.",
+      author: "Elena Rostova",
+      source: "Morning Reflections",
+      difficulty: "EASY",
+      category: "General",
+      wordsCount: 35,
+    },
+    {
+      title: "The Speed of Innovation",
+      text: "Technology moves at the speed of thought, transforming the boundaries of human potential and shaping the future of global connectivity.",
+      author: "Dr. Arthur Vance",
+      source: "Silicon Frontier",
+      difficulty: "MEDIUM",
+      category: "General",
+      wordsCount: 22,
+    },
+  ];
+}
 
 const ACHIEVEMENTS = [
   {
@@ -240,15 +153,15 @@ async function main() {
   await prisma.profile.deleteMany();
   await prisma.user.deleteMany();
 
-  // 1. Seed Passages
-  console.log("Creating passages...");
-  const createdPassages = [];
-  for (const p of PASSAGES) {
-    const passage = await prisma.typingPassage.create({
-      data: p,
+  // 1. Seed Passages in Bulk
+  console.log(`Creating ${PASSAGES.length} passages in bulk...`);
+  for (let i = 0; i < PASSAGES.length; i += 500) {
+    const chunk = PASSAGES.slice(i, i + 500);
+    await prisma.typingPassage.createMany({
+      data: chunk,
     });
-    createdPassages.push(passage);
   }
+  const createdPassages = await prisma.typingPassage.findMany({ take: 20 });
 
   // 2. Seed Achievements
   console.log("Creating achievements...");
