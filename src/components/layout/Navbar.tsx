@@ -64,8 +64,8 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Brand Logo */}
         <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-rush-600 via-rush-500 to-emerald-400 flex items-center justify-center text-slate-950 font-black shadow-[0_0_15px_rgba(16,185,129,0.4)] group-hover:scale-105 transition-transform duration-200">
-            <Zap className="w-5 h-5 fill-slate-950" />
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-500 via-rush-500 to-teal-400 flex items-center justify-center text-slate-950 shadow-[0_0_15px_rgba(16,185,129,0.4)] group-hover:scale-105 transition-transform duration-200">
+            <Zap className="w-5 h-5 fill-slate-950 text-slate-950" />
           </div>
           <span className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-200 to-rush-400 bg-clip-text text-transparent">
             TypeRush

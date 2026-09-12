@@ -9,6 +9,16 @@ export const metadata: Metadata = {
   title: "TypeRush — Type Faster. Compete Harder.",
   description:
     "Production-quality competitive typing platform. Practice solo, race friends in real-time, and create asynchronous typing challenges.",
+  icons: {
+    icon: [
+      { url: "/icon.png" },
+      { url: "/favicon.png", type: "image/png" },
+    ],
+    shortcut: ["/icon.png"],
+    apple: [
+      { url: "/apple-icon.png" },
+    ],
+  },
 };
 
 export default function RootLayout({
