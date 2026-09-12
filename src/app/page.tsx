@@ -163,7 +163,7 @@ export default function LandingPage() {
                 <h3 className="text-xl font-bold text-white mb-2">Solo Practice</h3>
                 <p className="text-sm text-slate-400 leading-relaxed mb-6">
                   Customize duration from 15s to 120s or complete whole passages across Easy, Medium,
-                  Hard, and Expert tiers with zero input latency.
+                  Hard and Expert tiers with zero input latency.
                 </p>
               </div>
               <Link
@@ -184,7 +184,7 @@ export default function LandingPage() {
                 <h3 className="text-xl font-bold text-white mb-2">Real-Time Multiplayer</h3>
                 <p className="text-sm text-slate-400 leading-relaxed mb-6">
                   Create custom racing rooms, generate shareable links, enjoy synchronized 3-2-1-GO
-                  countdowns, and watch live racetracks update instantly.
+                  countdowns and watch live racetracks update instantly.
                 </p>
               </div>
               <Link
@@ -204,7 +204,7 @@ export default function LandingPage() {
                 </div>
                 <h3 className="text-xl font-bold text-white mb-2">Friend Challenges</h3>
                 <p className="text-sm text-slate-400 leading-relaxed mb-6">
-                  Set target WPM benchmarks, choose passages, and share unique challenge URLs to
+                  Set target WPM benchmarks, choose passages and share unique challenge URLs to
                   compete asynchronously with dedicated leaderboards.
                 </p>
               </div>
@@ -234,7 +234,7 @@ export default function LandingPage() {
             </h2>
             <p className="text-slate-400 text-sm sm:text-base leading-relaxed">
               Every keystroke counts. View comprehensive second-by-second telemetry curves, daily
-              streaks, accuracy consistency ratings, and performance partitioned by difficulty.
+              streaks, accuracy consistency ratings and performance partitioned by difficulty.
             </p>
 
             <div className="grid grid-cols-2 gap-4 pt-2">
@@ -299,7 +299,7 @@ export default function LandingPage() {
             Ready to test your limits?
           </h2>
           <p className="text-slate-400 text-sm sm:text-base max-w-xl mx-auto">
-            Join thousands of typists sharpening their fingers, setting records, and dominating live
+            Join thousands of typists sharpening their fingers, setting records and dominating live
             races.
           </p>
           <div className="pt-4 flex justify-center">

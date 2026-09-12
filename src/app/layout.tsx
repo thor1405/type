@@ -8,7 +8,7 @@ import { Footer } from "@/components/layout/Footer";
 export const metadata: Metadata = {
   title: "TypeRush — Type Faster. Compete Harder.",
   description:
-    "Production-quality competitive typing platform. Practice solo, race friends in real-time, and create asynchronous typing challenges.",
+    "Production-quality competitive typing platform. Practice solo, race friends in real-time and create asynchronous typing challenges.",
   icons: {
     icon: [
       { url: "/icon.png" },

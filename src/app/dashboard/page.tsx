@@ -79,7 +79,7 @@ export default function DashboardPage() {
             Analytics Dashboard
           </h1>
           <p className="text-slate-400 text-sm mt-1">
-            Comprehensive overview of your typing speed evolution, accuracy consistency, and test history.
+            Comprehensive overview of your typing speed evolution, accuracy consistency and test history.
           </p>
         </div>
 
