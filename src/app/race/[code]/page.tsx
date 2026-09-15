@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/context";
-import { useSocket, SocketPlayer } from "@/lib/socket/useSocket";
+import { useSocket, SocketPlayer, BotDifficulty } from "@/lib/socket/useSocket";
 import { useTypingEngine } from "@/lib/typing-engine/useTypingEngine";
 import { TypingArea } from "@/components/typing/TypingArea";
 import { GameStatsBar } from "@/components/typing/GameStatsBar";
@@ -23,6 +23,9 @@ import {
   Clock,
   Zap,
   ArrowLeft,
+  X,
+  Plus,
+  Sparkles,
 } from "lucide-react";
 
 import { useCurrentPlayer } from "@/lib/auth/guest";
@@ -41,6 +44,7 @@ export default function RaceRoomPage() {
     joinRoom,
     toggleReady,
     addBot,
+    removeBot,
     startCountdown,
     sendProgress,
     finishRace,
@@ -54,6 +58,7 @@ export default function RaceRoomPage() {
   };
 
   const [copiedLink, setCopiedLink] = useState(false);
+  const [selectedBotDifficulty, setSelectedBotDifficulty] = useState<BotDifficulty>("MEDIUM");
   const progressThrottleRef = useRef<number>(0);
 
   const currentUsername = player.username;
@@ -256,18 +261,28 @@ export default function RaceRoomPage() {
                           <span>{p.username}</span>
                           {p.isHost && <Crown className="w-3.5 h-3.5 text-amber-400" />}
                           {p.isBot && (
-                            <span className="text-[9px] font-mono text-purple-400 bg-purple-950 px-1.5 py-0.5 rounded border border-purple-500/30">
-                              BOT
+                            <span
+                              className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border ${
+                                p.botDifficulty === "EASY"
+                                  ? "text-emerald-400 bg-emerald-950/80 border-emerald-500/30"
+                                  : p.botDifficulty === "HARD"
+                                  ? "text-amber-400 bg-amber-950/80 border-amber-500/30"
+                                  : p.botDifficulty === "EXPERT"
+                                  ? "text-purple-400 bg-purple-950/80 border-purple-500/30"
+                                  : "text-cyan-400 bg-cyan-950/80 border-cyan-500/30"
+                              }`}
+                            >
+                              BOT • {p.botDifficulty || "MEDIUM"}
                             </span>
                           )}
                         </div>
                         <p className="text-[11px] text-slate-500">
-                          {isYou ? "You" : p.isHost ? "Host" : "Competitor"}
+                          {isYou ? "You" : p.isHost ? "Host" : p.isBot ? `AI Pacer (${p.botDifficulty || "MEDIUM"})` : "Competitor"}
                         </p>
                       </div>
                     </div>
 
-                    <div>
+                    <div className="flex items-center gap-2">
                       {p.isReady ? (
                         <span className="inline-flex items-center gap-1 text-[11px] font-bold text-rush-400 bg-rush-950/80 px-2 py-1 rounded-lg border border-rush-500/30">
                           <ShieldCheck className="w-3.5 h-3.5" />
@@ -277,6 +292,16 @@ export default function RaceRoomPage() {
                         <span className="inline-flex items-center gap-1 text-[11px] text-slate-500 bg-slate-950 px-2 py-1 rounded-lg border border-slate-800">
                           Waiting...
                         </span>
+                      )}
+
+                      {isHost && p.isBot && (
+                        <button
+                          onClick={() => removeBot(p.socketId)}
+                          className="p-1.5 rounded-lg bg-slate-950 hover:bg-rose-950/60 border border-slate-800 hover:border-rose-500/40 text-slate-500 hover:text-rose-400 transition-colors"
+                          title="Remove this bot"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
                       )}
                     </div>
                   </div>
@@ -291,18 +316,63 @@ export default function RaceRoomPage() {
               <h3 className="font-extrabold text-white text-base">Race Control</h3>
               <p className="text-xs text-slate-400 leading-relaxed">
                 {isHost
-                  ? "As host, you can add AI bot racers or launch the synchronized countdown when everyone is ready."
+                  ? "Select a bot difficulty and add pacers, or launch the synchronized countdown when everyone is ready."
                   : "Mark yourself ready. The race host will start the countdown shortly."}
               </p>
 
               {isHost && (
-                <button
-                  onClick={addBot}
-                  className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 text-xs font-semibold transition-colors"
-                >
-                  <Bot className="w-4 h-4 text-purple-400" />
-                  <span>Add AI Bot Racer</span>
-                </button>
+                <div className="space-y-3 pt-2 border-t border-slate-800/80">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-semibold text-slate-300 flex items-center gap-1.5">
+                      <Bot className="w-4 h-4 text-purple-400" />
+                      Add AI Bot Racer
+                    </span>
+                    <span className="text-[10px] font-mono text-slate-500">
+                      {room.players.filter((p) => p.isBot).length} added
+                    </span>
+                  </div>
+
+                  {/* Difficulty selector tabs */}
+                  <div className="grid grid-cols-4 gap-1 p-1 rounded-xl bg-slate-900 border border-slate-800 text-[11px] font-bold">
+                    {(
+                      [
+                        { id: "EASY", label: "Easy", speed: "~35 WPM" },
+                        { id: "MEDIUM", label: "Med", speed: "~65 WPM" },
+                        { id: "HARD", label: "Hard", speed: "~95 WPM" },
+                        { id: "EXPERT", label: "Expert", speed: "~130 WPM" },
+                      ] as const
+                    ).map((tier) => (
+                      <button
+                        key={tier.id}
+                        type="button"
+                        onClick={() => setSelectedBotDifficulty(tier.id)}
+                        className={`py-1.5 px-1 rounded-lg text-center transition-all ${
+                          selectedBotDifficulty === tier.id
+                            ? tier.id === "EASY"
+                              ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm"
+                              : tier.id === "MEDIUM"
+                              ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm"
+                              : tier.id === "HARD"
+                              ? "bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-sm"
+                              : "bg-purple-500/20 text-purple-300 border border-purple-500/40 shadow-sm"
+                            : "text-slate-400 hover:text-slate-200 border border-transparent"
+                        }`}
+                      >
+                        <div>{tier.label}</div>
+                        <div className="text-[9px] font-mono opacity-70 font-normal">{tier.speed}</div>
+                      </button>
+                    ))}
+                  </div>
+
+                  <button
+                    onClick={() => addBot(selectedBotDifficulty)}
+                    disabled={room.players.length >= 8}
+                    className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-purple-950/60 hover:bg-purple-900/60 border border-purple-500/40 text-purple-300 text-xs font-bold transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Add {selectedBotDifficulty} Bot</span>
+                  </button>
+                </div>
               )}
             </div>
 

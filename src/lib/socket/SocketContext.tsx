@@ -2,6 +2,8 @@
 
 import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from "react";
 import { io, Socket } from "socket.io-client";
+export type BotDifficulty = "EASY" | "MEDIUM" | "HARD" | "EXPERT";
+
 export interface SocketPlayer {
   socketId: string;
   userId: string;
@@ -16,6 +18,7 @@ export interface SocketPlayer {
   finishRank?: number;
   finishTimeMs?: number;
   isBot?: boolean;
+  botDifficulty?: BotDifficulty;
 }
 
 export interface SocketRoom {
@@ -44,7 +47,8 @@ interface SocketContextType {
   createRoom: (name: string, username: string, avatar: string, userId: string, difficulty?: string) => void;
   joinRoom: (code: string, username: string, avatar: string, userId: string) => void;
   toggleReady: () => void;
-  addBot: () => void;
+  addBot: (difficulty?: BotDifficulty) => void;
+  removeBot: (socketId: string) => void;
   startCountdown: () => void;
   sendProgress: (progress: number, wpm: number, accuracy: number) => void;
   finishRace: (finalWpm: number, accuracy: number, duration: number) => void;
@@ -212,8 +216,12 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     socketRef.current?.emit("room:toggle_ready");
   }, []);
 
-  const addBot = useCallback(() => {
-    socketRef.current?.emit("room:add_bot");
+  const addBot = useCallback((difficulty?: BotDifficulty) => {
+    socketRef.current?.emit("room:add_bot", { difficulty: difficulty || "MEDIUM" });
+  }, []);
+
+  const removeBot = useCallback((socketId: string) => {
+    socketRef.current?.emit("room:remove_bot", { socketId });
   }, []);
 
   const startCountdown = useCallback(() => {
@@ -261,6 +269,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
         joinRoom,
         toggleReady,
         addBot,
+        removeBot,
         startCountdown,
         sendProgress,
         finishRace,

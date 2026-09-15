@@ -1,5 +1,7 @@
 import { Server as SocketIOServer, Socket } from "socket.io";
 
+export type BotDifficulty = "EASY" | "MEDIUM" | "HARD" | "EXPERT";
+
 export interface PlayerState {
   socketId: string;
   userId: string;
@@ -14,7 +16,35 @@ export interface PlayerState {
   finishRank?: number;
   finishTimeMs?: number;
   isBot?: boolean;
+  botDifficulty?: BotDifficulty;
 }
+
+export const BOT_PROFILES: Record<BotDifficulty, { names: string[]; minWpm: number; maxWpm: number; avgAcc: number }> = {
+  EASY: {
+    names: ["TurtleBot", "NovicePacer", "SteadyPaws", "ChillTyper", "BreezeAI"],
+    minWpm: 32,
+    maxWpm: 46,
+    avgAcc: 94,
+  },
+  MEDIUM: {
+    names: ["TurboBot", "SwiftKey_Bot", "VelocityAI", "RhythmBot", "SprintPacer"],
+    minWpm: 58,
+    maxWpm: 76,
+    avgAcc: 97,
+  },
+  HARD: {
+    names: ["ApexRacer", "CyberDash", "ThunderKey", "HyperBot", "ByteSpeed"],
+    minWpm: 88,
+    maxWpm: 108,
+    avgAcc: 98.5,
+  },
+  EXPERT: {
+    names: ["QuantumGod", "NeuralTitan", "SupersonicX", "OmniStrike", "MachSpeed"],
+    minWpm: 120,
+    maxWpm: 145,
+    avgAcc: 99.5,
+  },
+};
 
 export interface RoomData {
   id: string;
@@ -186,7 +216,7 @@ export function initSocketServer(io: SocketIOServer) {
       io.to(room.code).emit("room:updated", { room: sanitizeRoom(room) });
     });
 
-    socket.on("room:add_bot", () => {
+    socket.on("room:add_bot", (payload?: { difficulty?: BotDifficulty }) => {
       if (!currentRoomCode) return;
       const room = rooms.get(currentRoomCode);
       if (!room) return;
@@ -195,26 +225,50 @@ export function initSocketServer(io: SocketIOServer) {
       const isHost = player?.isHost || socket.id === room.hostId;
       if (!isHost) return;
 
-      const botNames = ["TurboBot", "ApexRacer", "VelocityAI", "SwiftKey_Bot", "ByteSpeed"];
-      const existingBots = Object.values(room.players).filter((p) => p.isBot).length;
-      const botName = botNames[existingBots % botNames.length];
+      if (Object.keys(room.players).length >= 8) {
+        socket.emit("room:error", { message: "Room is already full (max 8 racers)." });
+        return;
+      }
+
+      const diff: BotDifficulty = (payload?.difficulty || "MEDIUM").toUpperCase() as BotDifficulty;
+      const profile = BOT_PROFILES[diff] || BOT_PROFILES.MEDIUM;
+
+      const existingBotsOfTier = Object.values(room.players).filter((p) => p.isBot && p.botDifficulty === diff).length;
+      const botName = profile.names[existingBotsOfTier % profile.names.length];
       const botId = "bot_" + Math.random().toString(36).substring(2, 8);
 
       room.players[botId] = {
         socketId: botId,
         userId: botId,
-        username: `${botName} [BOT]`,
+        username: `${botName} [BOT • ${diff}]`,
         avatar: "bot",
         isHost: false,
         isReady: true,
         progress: 0,
         wpm: 0,
-        accuracy: 98,
+        accuracy: profile.avgAcc,
         finished: false,
         isBot: true,
+        botDifficulty: diff,
       };
 
       io.to(room.code).emit("room:updated", { room: sanitizeRoom(room) });
+    });
+
+    socket.on("room:remove_bot", (payload: { socketId: string }) => {
+      if (!currentRoomCode) return;
+      const room = rooms.get(currentRoomCode);
+      if (!room) return;
+
+      const player = room.players[socket.id];
+      const isHost = player?.isHost || socket.id === room.hostId;
+      if (!isHost) return;
+
+      const target = room.players[payload.socketId];
+      if (target && target.isBot) {
+        delete room.players[payload.socketId];
+        io.to(room.code).emit("room:updated", { room: sanitizeRoom(room) });
+      }
     });
 
     socket.on("room:start_countdown", () => {
@@ -404,7 +458,9 @@ function startBotsSimulation(room: RoomData, io: SocketIOServer) {
   room.botIntervals = [];
 
   bots.forEach((bot) => {
-    const targetWpm = 55 + Math.floor(Math.random() * 40);
+    const diff = (bot.botDifficulty || "MEDIUM") as BotDifficulty;
+    const profile = BOT_PROFILES[diff] || BOT_PROFILES.MEDIUM;
+    const targetWpm = profile.minWpm + Math.floor(Math.random() * (profile.maxWpm - profile.minWpm + 1));
     const charsPerSec = (targetWpm * 5) / 60;
     const totalChars = room.passage.text.length;
 
@@ -415,14 +471,14 @@ function startBotsSimulation(room: RoomData, io: SocketIOServer) {
         return;
       }
 
-      const tickAdvance = (charsPerSec / 2) * (0.8 + Math.random() * 0.4);
+      const tickAdvance = (charsPerSec / 2) * (0.85 + Math.random() * 0.3);
       typedChars += tickAdvance;
       const progress = Math.min(100, Math.round((typedChars / totalChars) * 100));
-      const currentWpm = Math.round(targetWpm + (Math.random() * 6 - 3));
+      const currentWpm = Math.round(targetWpm + (Math.random() * 4 - 2));
 
       bot.progress = progress;
       bot.wpm = currentWpm;
-      bot.accuracy = 97 + Math.floor(Math.random() * 3);
+      bot.accuracy = Math.min(100, Math.max(90, Math.round(profile.avgAcc + (Math.random() * 2 - 1))));
 
       io.to(room.code).emit("race:progress_update", {
         socketId: bot.socketId,

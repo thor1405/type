@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/context";
-import { useSocket } from "@/lib/socket/useSocket";
+import { useSocket, BotDifficulty } from "@/lib/socket/useSocket";
 import {
   Users,
   Plus,
@@ -27,6 +27,7 @@ export default function MultiplayerHubPage() {
     refreshPublicRooms,
     createRoom,
     joinRoom,
+    addBot,
     room,
     clearRoom,
     errorMessage,
@@ -37,7 +38,9 @@ export default function MultiplayerHubPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [customRoomName, setCustomRoomName] = useState("");
   const [selectedDifficulty, setSelectedDifficulty] = useState("MEDIUM");
+  const [quickBotDifficulty, setQuickBotDifficulty] = useState<BotDifficulty>("MEDIUM");
   const [isNavigating, setIsNavigating] = useState(false);
+  const [pendingBotDiff, setPendingBotDiff] = useState<BotDifficulty | null>(null);
 
   const currentUsername = player.username;
   const currentAvatar = player.avatar;
@@ -52,16 +55,27 @@ export default function MultiplayerHubPage() {
   // Navigate to race page only when room is newly created or joined
   useEffect(() => {
     if (isNavigating && room?.code) {
+      if (pendingBotDiff) {
+        addBot(pendingBotDiff);
+        setPendingBotDiff(null);
+      }
       setIsNavigating(false);
       router.push(`/race/${room.code}`);
     }
-  }, [isNavigating, room?.code, router]);
+  }, [isNavigating, room?.code, pendingBotDiff, addBot, router]);
 
-  const handleCreateRoom = (withBot = false) => {
+  const handleCreateRoom = () => {
     const name = customRoomName.trim() || `${currentUsername}'s Grand Prix`;
     setIsNavigating(true);
     createRoom(name, currentUsername, currentAvatar, currentUserId, selectedDifficulty);
     setShowCreateModal(false);
+  };
+
+  const handleQuickBotRace = () => {
+    const name = `Duel vs ${quickBotDifficulty} AI`;
+    setPendingBotDiff(quickBotDifficulty);
+    setIsNavigating(true);
+    createRoom(name, currentUsername, currentAvatar, currentUserId, quickBotDifficulty);
   };
 
   const handleJoinByCode = (e: React.FormEvent) => {
@@ -90,7 +104,7 @@ export default function MultiplayerHubPage() {
           </h1>
           <p className="text-slate-400 text-sm mt-1 max-w-xl">
             Create a private room to race with friends, join an active public lobby, or sharpen your
-            speed against automated AI racers.
+            speed against automated AI racers with selectable difficulties.
           </p>
         </div>
 
@@ -158,18 +172,51 @@ export default function MultiplayerHubPage() {
             </div>
             <h3 className="text-xl font-extrabold text-white">Quick Bot Challenge</h3>
             <p className="text-xs text-slate-400">
-              Want instant competition right now? Launch a real-time multiplayer room with AI bot
-              pacers simulating realistic speeds (60–95 WPM).
+              Want instant competition right now? Choose your bot skill level and jump directly into a synchronized race!
             </p>
           </div>
 
-          <button
-            onClick={() => handleCreateRoom(true)}
-            className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 font-bold text-xs transition-colors"
-          >
-            <Bot className="w-4 h-4 text-purple-400" />
-            <span>Launch Quick Race with Bots</span>
-          </button>
+          <div className="space-y-3">
+            {/* 4-tier selector */}
+            <div className="grid grid-cols-4 gap-1 p-1 rounded-xl bg-slate-900 border border-slate-800 text-[11px] font-bold">
+              {(
+                [
+                  { id: "EASY", label: "Easy", speed: "~35 WPM" },
+                  { id: "MEDIUM", label: "Med", speed: "~65 WPM" },
+                  { id: "HARD", label: "Hard", speed: "~95 WPM" },
+                  { id: "EXPERT", label: "Expert", speed: "~130 WPM" },
+                ] as const
+              ).map((tier) => (
+                <button
+                  key={tier.id}
+                  type="button"
+                  onClick={() => setQuickBotDifficulty(tier.id)}
+                  className={`py-1.5 px-1 rounded-lg text-center transition-all ${
+                    quickBotDifficulty === tier.id
+                      ? tier.id === "EASY"
+                        ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm"
+                        : tier.id === "MEDIUM"
+                        ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm"
+                        : tier.id === "HARD"
+                        ? "bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-sm"
+                        : "bg-purple-500/20 text-purple-300 border border-purple-500/40 shadow-sm"
+                      : "text-slate-400 hover:text-slate-200 border border-transparent"
+                  }`}
+                >
+                  <div>{tier.label}</div>
+                  <div className="text-[9px] font-mono opacity-70 font-normal">{tier.speed}</div>
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={handleQuickBotRace}
+              className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl bg-purple-950/80 hover:bg-purple-900 border border-purple-500/40 text-purple-200 font-bold text-xs transition-all hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_15px_rgba(168,85,247,0.2)]"
+            >
+              <Bot className="w-4 h-4 text-purple-400" />
+              <span>Launch Race vs {quickBotDifficulty} Bot</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -260,17 +307,17 @@ export default function MultiplayerHubPage() {
 
               <div>
                 <label className="text-xs font-semibold text-slate-300 block mb-1">
-                  Difficulty Level
+                  Passage Difficulty Level
                 </label>
-                <div className="grid grid-cols-3 gap-2">
-                  {["EASY", "MEDIUM", "HARD"].map((d) => (
+                <div className="grid grid-cols-4 gap-2">
+                  {(["EASY", "MEDIUM", "HARD", "EXPERT"] as const).map((d) => (
                     <button
                       key={d}
                       type="button"
                       onClick={() => setSelectedDifficulty(d)}
                       className={`py-2 rounded-xl text-xs font-bold border transition-colors ${
                         selectedDifficulty === d
-                          ? "bg-rush-500 text-slate-950 border-rush-500"
+                          ? "bg-rush-500 text-slate-950 border-rush-500 shadow-sm"
                           : "bg-slate-950 border-slate-800 text-slate-400 hover:text-white"
                       }`}
                     >
@@ -291,7 +338,7 @@ export default function MultiplayerHubPage() {
               </button>
               <button
                 type="button"
-                onClick={() => handleCreateRoom(false)}
+                onClick={handleCreateRoom}
                 className="px-6 py-2 rounded-xl bg-rush-500 hover:bg-rush-400 text-slate-950 font-bold text-xs shadow-md"
               >
                 Create & Enter Lobby
